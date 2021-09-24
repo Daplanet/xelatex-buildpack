@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "oauth2-proxy"
+exit 0
