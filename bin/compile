@@ -2,23 +2,22 @@
 
 set -eu
 
-function error() {
+error() {
   echo " !     $*" >&2
   exit 1
 }
 
-function topic() {
+topic() {
   echo "-----> $*"
 }
 
-function indent() {
+indent() {
   c='s/^/       /'
   case $(uname) in
     Darwin) sed -l "$c";;
     *)      sed -u "$c";;
   esac
 }
-
 
 export_env_dir() {
   env_dir=$1
@@ -61,12 +60,12 @@ EOF
 
 export PATH="$BUILD_DIR/.apt/usr/bin:$PATH"
 
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-        libsqlite3-dev \
-        python3-pip \
-        python3-setuptools
+#apt-get update
+#DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+#        libsqlite3-dev \
+#        python3-pip \
+#        python3-setuptools
 
-test -f $BUILD_DIR/requirements.txt && \
-  pip install -r "$BUILD_DIR/requirements.txt" \
-  --exists-action=w --src=/app/.heroku/src --disable-pip-version-check --no-cache-dir 2>&1
+#test -f $BUILD_DIR/requirements.txt && \
+#  pip install -r "$BUILD_DIR/requirements.txt" \
+#  --exists-action=w --src=/app/.heroku/src --disable-pip-version-check --no-cache-dir 2>&1
