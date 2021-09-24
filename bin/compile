@@ -48,11 +48,11 @@ PROXY_URL=https://github.com/oauth2-proxy/oauth2-proxy/releases/download/${PROXY
 
 mkdir -p $BUILD_DIR/.local/bin
 curl -sSLk $PROXY_URL | tar zxf - --strip-components=1 -C $BUILD_DIR/.local/bin oauth2-proxy-${PROXY_VERSION}/oauth2-proxy 2>&1 | sed '/Ignoring/d'
-chmod +x $BUILD_DIR/oauth2-proxy
-test -f $BUILD_DIR/oauth2-proxy || error "failed to install oauth2-proxy"
+chmod +x $BUILD_DIR/.local/bin/oauth2-proxy
+test -f $BUILD_DIR/.local/bin/oauth2-proxy || error "failed to install oauth2-proxy"
 
 topic "Writing profile script"
 mkdir -p $BUILD_DIR/.profile.d
 cat <<EOF >$BUILD_DIR/.profile.d/000_path.sh
-export PATH='$HOME/.apt/usr/bin:$PATH'
+export PATH='$HOME/.local/bin:$PATH'
 EOF
