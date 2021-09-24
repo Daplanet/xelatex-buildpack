@@ -2,10 +2,23 @@
 
 set -eu
 
-
-indent() {
-  sed -u 's/^/       /'
+function error() {
+  echo " !     $*" >&2
+  exit 1
 }
+
+function topic() {
+  echo "-----> $*"
+}
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
 
 export_env_dir() {
   env_dir=$1
@@ -24,16 +37,36 @@ BP_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR=$1
 CACHE_DIR=$2
 OPT_DIR=$BP_DIR/../opt/
+BIN_DIR=$BUILD_DIR/.local/bin
 
 export_env_dir $3
 
+stack=${STACK:-heroku-16}
+
+topic "Installing oauth2-proxy..."
 PROXY_RELEASE=v7.1.3
 PROXY_OS=linux-amd64
 PROXY_VERSION=${PROXY_RELEASE}.${PROXY_OS}
 PROXY_URL=https://github.com/oauth2-proxy/oauth2-proxy/releases/download/${PROXY_RELEASE}/oauth2-proxy-${PROXY_VERSION}.tar.gz
 
-echo -n "-----> Installing oauth2-proxy... "
-curl -sSLk $PROXY_URL -o /tmp/oauth2-proxy.tgz | indent
-tar zxvf /tmp/oauth2-proxy.tgz --strip-components=1 -C $BUILD_DIR/bin/ oauth2-proxy-${PROXY_VERSION}/oauth2-proxy > /dev/null 2>&1
-chmod +x $BUILD_DIR/bin/oauth2-proxy
-echo "done"
+curl -sSLk $PROXY_URL -o oauth2-proxy.tgz | tar zxf - --strip-components=1 -C $BUILD_DIR/ oauth2-proxy-${PROXY_VERSION}/oauth2-proxy
+chmod +x $BUILD_DIR/oauth2-proxy
+test -f $BUILD_DIR/oauth2-proxy || error "failed to install oauth2-proxy"
+
+topic "Writing profile script"
+mkdir -p $BUILD_DIR/.profile.d
+cat <<EOF >$BUILD_DIR/.profile.d/000_path.sh
+export PATH="\$HOME/.apt/usr/bin:\$PATH"
+EOF
+
+export PATH="$BUILD_DIR/.apt/usr/bin:$PATH"
+
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+        libsqlite3-dev \
+        python3-pip \
+        python3-setuptools
+
+test -f $BUILD_DIR/requirements.txt && \
+  pip install -r "$BUILD_DIR/requirements.txt" \
+  --exists-action=w --src=/app/.heroku/src --disable-pip-version-check --no-cache-dir 2>&1
