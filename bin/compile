@@ -40,32 +40,19 @@ BIN_DIR=$BUILD_DIR/.local/bin
 
 export_env_dir $3
 
-stack=${STACK:-heroku-16}
-
 topic "Installing oauth2-proxy..."
 PROXY_RELEASE=v7.1.3
 PROXY_OS=linux-amd64
 PROXY_VERSION=${PROXY_RELEASE}.${PROXY_OS}
 PROXY_URL=https://github.com/oauth2-proxy/oauth2-proxy/releases/download/${PROXY_RELEASE}/oauth2-proxy-${PROXY_VERSION}.tar.gz
 
-curl -sSLk $PROXY_URL | tar zxf - --strip-components=1 -C $BUILD_DIR/ oauth2-proxy-${PROXY_VERSION}/oauth2-proxy | grep -v Ignoring
+mkdir -p $BUILD_DIR/.local/bin
+curl -sSLk $PROXY_URL | tar zxf - --strip-components=1 -C $BUILD_DIR/.local/bin oauth2-proxy-${PROXY_VERSION}/oauth2-proxy 2>&1 | sed '/Ignoring/d'
 chmod +x $BUILD_DIR/oauth2-proxy
 test -f $BUILD_DIR/oauth2-proxy || error "failed to install oauth2-proxy"
 
 topic "Writing profile script"
 mkdir -p $BUILD_DIR/.profile.d
 cat <<EOF >$BUILD_DIR/.profile.d/000_path.sh
-export PATH="\$HOME/.apt/usr/bin:\$PATH"
+export PATH='$HOME/.apt/usr/bin:$PATH'
 EOF
-
-export PATH="$BUILD_DIR/.apt/usr/bin:$PATH"
-
-#apt-get update
-#DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-#        libsqlite3-dev \
-#        python3-pip \
-#        python3-setuptools
-
-#test -f $BUILD_DIR/requirements.txt && \
-#  pip install -r "$BUILD_DIR/requirements.txt" \
-#  --exists-action=w --src=/app/.heroku/src --disable-pip-version-check --no-cache-dir 2>&1
