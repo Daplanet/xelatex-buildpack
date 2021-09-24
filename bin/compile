@@ -48,7 +48,7 @@ PROXY_OS=linux-amd64
 PROXY_VERSION=${PROXY_RELEASE}.${PROXY_OS}
 PROXY_URL=https://github.com/oauth2-proxy/oauth2-proxy/releases/download/${PROXY_RELEASE}/oauth2-proxy-${PROXY_VERSION}.tar.gz
 
-curl -sSLk $PROXY_URL | tar zxf - --strip-components=1 -C $BUILD_DIR/ oauth2-proxy-${PROXY_VERSION}/oauth2-proxy
+curl -sSLk $PROXY_URL | tar zxf - --strip-components=1 -C $BUILD_DIR/ oauth2-proxy-${PROXY_VERSION}/oauth2-proxy | grep -v Ignoring
 chmod +x $BUILD_DIR/oauth2-proxy
 test -f $BUILD_DIR/oauth2-proxy || error "failed to install oauth2-proxy"
 
