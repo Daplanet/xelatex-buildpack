@@ -1,8 +1,0 @@
-#!/bin/sh
-
-cat <<EOF
----
-default_process_types:
-  web: invoke proxy
-  app: invoke serve
-EOF
