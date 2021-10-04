@@ -2,37 +2,11 @@
 
 set -eu
 
-# source /dev/stdin <<< "$(curl -s --retry 3 https://lang-common.s3.amazonaws.com/buildpack-stdlib/latest/stdlib.sh)"
+curl -sSl --retry 3 https://lang-common.s3.amazonaws.com/buildpack-stdlib/latest/stdlib.sh | source /dev/stdin
 
-error() {
-  echo " !     $*" >&2
-  exit 1
-}
-
-topic() {
-  echo "-----> $*"
-}
-
-indent() {
-  c='s/^/       /'
-  case $(uname) in
-    Darwin) sed -l "$c";;
-    *)      sed -u "$c";;
-  esac
-}
-
-export_env_dir() {
-  env_dir=$1
-  whitelist_regex=${2:-''}
-  blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|JAVA_OPTS)$'}
-  if [ -d "$env_dir" ]; then
-    for e in $(ls $env_dir); do
-      echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
-      export "$e=$(cat $env_dir/$e)"
-      :
-    done
-  fi
-}
+error() { puts_error $*;  exit 1; }
+topic() { puts_step $*; }
+indent() { test $(uname) = "Darwin" && sed -l 's/^/       /' || sed -u 's/^/       /'; }
 
 BP_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR=$1
@@ -40,21 +14,12 @@ CACHE_DIR=$2
 OPT_DIR=$BP_DIR/../opt/
 BIN_DIR=$BUILD_DIR/.local/bin
 
-export_env_dir $3
+export_env $3
 
-topic "Installing oauth2-proxy..."
-PROXY_RELEASE=v7.1.3
-PROXY_OS=linux-amd64
-PROXY_VERSION=${PROXY_RELEASE}.${PROXY_OS}
-PROXY_URL=https://github.com/oauth2-proxy/oauth2-proxy/releases/download/${PROXY_RELEASE}/oauth2-proxy-${PROXY_VERSION}.tar.gz
+export DEBIAN_FRONTEND=noninteractive
+topic "Installing pandoc..."
+apt-get install -y pandoc || error "failed to install texlive"
 
-mkdir -p $BUILD_DIR/.local/bin
-curl -sSLk $PROXY_URL | tar zxf - --strip-components=1 -C $BUILD_DIR/.local/bin oauth2-proxy-${PROXY_VERSION}/oauth2-proxy 2>&1 | sed '/Ignoring/d'
-chmod +x $BUILD_DIR/.local/bin/oauth2-proxy
-test -f $BUILD_DIR/.local/bin/oauth2-proxy || error "failed to install oauth2-proxy"
-
-topic "Writing profile script"
-mkdir -p $BUILD_DIR/.profile.d
-cat <<EOF >$BUILD_DIR/.profile.d/000_path.sh
-export PATH='$HOME/.local/bin:$PATH'
-EOF
+topic "Installing texlive..."
+apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic
+test $? || error "failed to install texlive"
