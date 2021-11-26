@@ -1,4 +1,4 @@
-![banner](https://gateway.pinata.cloud/ipfs/QmddZMebu32w5Bz3P6VvCwYv6fFAmXWJJwrKY67b3ZvTKN)
+![banner](https://banner.dapla.net/?utm_campaign=community-buildpacks&utm_source=github.com/daplanet/xelatex-buildpack&utm_medium=markdown)
 
 # xelatex-buildpack
 
